@@ -13,9 +13,9 @@ from sklearn.pipeline import make_pipeline
 from LoggingDetails.LogFileHandler import logs
 import logging
 import os
-from DataMassaging.DataPreprocessingUtility.PathConstant import DescribeFilePathContants
-log_file = os.path.join(DescribeFilePathContants._BASE_LOG_FILE,
-                                            DescribeFilePathContants._DATA_MASSAGE_LOG_FILE)
+from LoggingDetails.LogPathConstant import LogFilePathContants,LogFiles
+log_file = os.path.join(LogFilePathContants._BASE_LOG_FILE,
+                        LogFiles._VECTORIZER_LOG_FILE)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

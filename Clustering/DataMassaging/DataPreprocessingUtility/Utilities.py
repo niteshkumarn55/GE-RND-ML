@@ -65,7 +65,7 @@ class DataUtilities():
 
                         #Gets only the required columns to the dataframe
                         required_df[value] = self._df[value]
-                        required_df = required_df[required_df[value].notnull()] #Just picking rows which has no NaN in domain_name
+                        required_df = required_df[required_df[value].notnull()] #Just picking rows which has no NaN
                 logger.info("The filtered df is {}".format(str(required_df.head(1))))
                 logger.info("The independent values are {}".format(str(independent_fields)))
                 return required_df, independent_fields
@@ -122,21 +122,26 @@ class DFAnalyse():
             else:
                 cate_filtered_df = df.copy(deep=True)
                 for key, unique_value_list in dict_category_and_values.items():
-                    #Filters the df based on the independent field of its categorical value
-                    cate_filtered_df = cate_filtered_df.loc[cate_filtered_df[key].isin(unique_value_list)]
-                    logger.info("The df is forming based on the column/independent field {} and the categories "
-                                "selected is {}".format(str(key),str(unique_value_list)))
+                    if (key == "all"):
+                        pass
+                        logger.info("Going to take all the fields from the csv to df")
+                        break
+                    else:
+                        #Filters the df based on the independent field of its categorical value
+                        cate_filtered_df = cate_filtered_df.loc[cate_filtered_df[key].isin(unique_value_list)]
+                        logger.info("The df is forming based on the column/independent field {} and the categories "
+                                    "selected is {}".format(str(key),str(unique_value_list)))
                 return cate_filtered_df
         except Exception as error:
             logger.error(str(error), exc_info=True)
-
-if __name__ == '__main__':
-
-    filter_df, independent_fields = data_utilities.show_hori_tech_from_df(df=df)
-    dfa = DFAnalyse()
-    dfa.get_unique_fields_based_on_tech_and_horizontal(df=filter_df,independent_fields=independent_fields)
-
-    # temp_dict = {'horizontal': ['Fintech'], 'technology_segment_1': ['Digital Banking'], 'technology_segment_2': ['Open Banking API', 'Customer Relationship Management']}
-    temp_dict = {'horizontal': ['Fintech'],'technology_segment_2': ['Open Banking API', 'Customer Relationship Management']}
-
-    dfa.filter_df_by_category(df=filter_df,dict_category_and_values=temp_dict)
+#
+# if __name__ == '__main__':
+#
+#     filter_df, independent_fields = data_utilities.show_hori_tech_from_df(df=df)
+#     dfa = DFAnalyse()
+#     dfa.get_unique_fields_based_on_tech_and_horizontal(df=filter_df,independent_fields=independent_fields)
+#
+#     # temp_dict = {'horizontal': ['Fintech'], 'technology_segment_1': ['Digital Banking'], 'technology_segment_2': ['Open Banking API', 'Customer Relationship Management']}
+#     temp_dict = {'horizontal': ['Fintech'],'technology_segment_2': ['Open Banking API', 'Customer Relationship Management']}
+#
+#     dfa.filter_df_by_category(df=filter_df,dict_category_and_values=temp_dict)

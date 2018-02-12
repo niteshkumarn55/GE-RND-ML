@@ -81,7 +81,7 @@ class ProcessingData():
         df['complete_text'] = df[['short_description', 'about_us']].apply(
             lambda x: x.str.cat(sep=' '), axis=1)
         df['processed_text'] = df['complete_text'].apply(ProcessingData().nltk_preprocessing)
-        logger.info("df now contains the processed_text column")
+        logger.info("df now contains the processed_text column with stemming of words")
         return df
 
     def get_text_without_stem(self, df=None):

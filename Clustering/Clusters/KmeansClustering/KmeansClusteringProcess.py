@@ -53,25 +53,34 @@ class KmeansTechnique():
 
         terms = vectorizer.get_feature_names()
         cluster_and_terms_map = {}# Used to get the map of terms for each cluster and eventually is stored in a file for further analysis.
+        dict_of_cluster_and_tags = dict()
+        dict_of_cluster_and_filename = dict()
         for i in range(number_cluster):
             print("Cluster %d:" % i, end=' ')
-            for ind in order_centroids[i, :10]:
+            list_of_cluster_tags = list()
+            for ind in order_centroids[i, :15]:
                 print(' %s' % terms[ind], end=',')
+                list_of_cluster_tags.append(terms[ind])
+
             print()
             print("Cluster %d filenames:" % i, end='')
+            list_of_cluster_filename = list()
             for file in frame.ix[i]['filename'].values.tolist():
                 print(' %s,' % file, end='')
+                list_of_cluster_filename.append(int(file))
             print()
+            dict_of_cluster_and_tags['cluster '+str(i)] = list_of_cluster_tags
+            dict_of_cluster_and_filename['cluster '+str(i)] = list_of_cluster_filename
 
 
         #you can comment if you don't what terms to be appended in a text file for analysis purpose
             """To check the terms and what kind of terms are choosen by the cluster we load it to a plain text file"""
             list_of_terms = []  # Used to load the list of terms from each cluster to a file, used for further analysis purpose only.
-            for ind in order_centroids[i, :10]:
+            for ind in order_centroids[i, :15]:
                 list_of_terms.append(terms[ind])
             cluster_and_terms_map[i] = list_of_terms
 
-        return cluster_and_terms_map,cluster_and_count_of_docs #Returning the cluster and terms of each cluster. This is eventually used for analysis, but nothing to do the algorithm.
+        return cluster_and_terms_map,cluster_and_count_of_docs,dict_of_cluster_and_tags,dict_of_cluster_and_filename #Returning the cluster and terms of each cluster. This is eventually used for analysis, but nothing to do the algorithm.
 
 
 

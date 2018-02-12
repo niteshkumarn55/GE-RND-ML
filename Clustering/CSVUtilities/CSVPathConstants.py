@@ -22,4 +22,12 @@ class CSV_NAME():
     #Fintech GE Segmented csv file
     _GE_SEGMENT_CSV = "GE_CompanyProfile.csv"
 
+    _CLUSTER_TAG_CSV = "cluster_tag.csv"
 
+    _CLUSTER_FILENAME_CSV = "cluster_filename.csv"
+
+    _HC_CLUSTER_TAG_CSV = "hc_cluster_tag.csv"
+
+    _HC_CLUSTER_FILENAME_CSV = "hc_cluster_filename.csv"
+
+    _CLUSTER_COLUMN_CSV = "cluster_column.csv"

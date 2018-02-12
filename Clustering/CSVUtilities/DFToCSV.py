@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 16 16:00:01 2018
+Created on Thu Jan 22 16:55:19 2018
 
 @author: nitesh
 """
@@ -23,8 +23,7 @@ file_handler = logs().fileHandler(logging,log_file_path=log_file)
 logger.addHandler(file_handler)
 
 
-class CsvToDataFrame():
-
+class DataframeToCSV():
     def __init__(self):
         self._csv_name = CSV_NAME()
         self._file_path = CSVFilePathContants()
@@ -45,31 +44,42 @@ class CsvToDataFrame():
     def csv_value(self, value):
         self.csv_value = value
 
+    def load_df_to_csv(self, df=pd.DataFrame(),cluster_csv=None,algo=None):
+        """
 
-    def get_df_from_csv(self):
+        :param df:
+        :return:
         """
-        This method provides the df from the csv present in the default path.
-        This also removes the rows where the domain_name are NaN
-        :return: df: DF which is converted from the csv format
-        """
-        csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
-                                self.csv_value._GE_SEGMENT_CSV) #This the csv path of GE
+
+        if(cluster_csv=="cluster_tag"):
+            if(algo=="kmeans"):
+                csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                        self.csv_value._CLUSTER_TAG_CSV) #This the csv path of GE
+            elif(algo=="hierarchy"):
+                csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                        self.csv_value._HC_CLUSTER_TAG_CSV)
+
+        elif(cluster_csv=="cluster_filename"):
+            if (algo == "kmeans"):
+                csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                        self.csv_value._CLUSTER_FILENAME_CSV)  # This the csv path of GE
+            elif (algo == "hierarchy"):
+                csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                        self.csv_value._HC_CLUSTER_FILENAME_CSV)
+
+        elif (cluster_csv == "cluster_column"):
+            csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                    self.csv_value._CLUSTER_COLUMN_CSV)  # This the csv path of GE
+
         logger.info('The csv path is {}'.format(csv_path))
 
         try:
-            df = pd.read_csv(csv_path)
-            logger.info("Dataframe is create %s is the same of record",df.head(1))
-            df_n = df[df['domain_name'].isnull()]
-            if df_n.size > 0:
-                logger.warning('The ID of Records where Domain name has NULL, {} '.format(str(df_n['ID'].values)))
-            logger.info('Storing Non Null value in the dataframe')
-            cols = ['domain_name','short_description','about_us']
-            for col in cols:
-                df = df[df[col].notnull()] #Just picking rows which has no NaN in domain_name
-            return df
+            df.to_csv(csv_path)
+            logger.info("data frame to csv conversion done")
         except (SystemExit, KeyboardInterrupt):
             raise
         except FileNotFoundError as error:
             logger.error("check the file existence {}".format(str(error)))
         except Exception as error:
             logger.error("Failed to open file, check file and the name of the file {}".format(str(error)),exc_info=True)
+

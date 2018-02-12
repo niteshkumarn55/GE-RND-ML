@@ -15,7 +15,7 @@ sys.path.append(parent_directory) #Adding to the sys path, so the modules siblin
 
 app = Flask(__name__)
 print(app)
-@app.route('/cluster/' , methods=['GET','POST'])
+@app.route('/cluster/' , methods=['POST'])
 def Clustering():
 
     query = request.args.get('query')
@@ -34,5 +34,5 @@ def Clustering():
 
 if __name__ == "__main__":
     host = '0.0.0.0'
-    app.run(host=host ,debug=True)
+    app.run(host=host , port=4000,debug=True)
 
