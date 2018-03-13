@@ -61,6 +61,7 @@ class ProcessingData():
         word_regex = re.compile(r"\w")
         tokens = word_tokenize(content)
         for token in tokens:
+            token = token.lower()
             if token not in self._stopwords:
                 if word_regex.match(token):
                     if text == "":

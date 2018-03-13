@@ -31,3 +31,7 @@ class CSV_NAME():
     _HC_CLUSTER_FILENAME_CSV = "hc_cluster_filename.csv"
 
     _CLUSTER_COLUMN_CSV = "cluster_column.csv"
+
+    _AFFINITY_CLUSTER_FILENAME_CSV = "affi_cluster_filename.csv"
+
+    _AFFINITY_CLUSTER_DISTANCE_CSV = "affi_cluster_distance.csv"

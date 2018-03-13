@@ -90,12 +90,10 @@ class CSVToDictionaryMapping():
         except Exception as error:
             logger.error("Failed to open file, check file and the name of the file {}".format(str(error)),exc_info=True)
 
-    def dict_to_df(self,dictionary=dict()):
-        """
 
-        :param dictionary:
-        :return:
-        """
-        df = pd.DataFrame.from_dict(dictionary,orient="index")
-        return df
+if __name__ == '__main__':
+    df = pd.read_csv(r'/Users/nitesh/OneDrive/Work/GE_Docs_ML/cluster_filename.csv')
+    df = df.set_index(['Unnamed: 0'])
+    df2 = pd.read_csv(r'/Users/nitesh/OneDrive/Work/GE_Docs_ML/GE_CompanyProfile.csv')
 
+    print()
