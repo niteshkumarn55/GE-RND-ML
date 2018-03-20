@@ -11,14 +11,8 @@ from string import punctuation
 from heapq import nlargest
 import math
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.decomposition import TruncatedSVD
-from sklearn.preprocessing import Normalizer
-from sklearn.pipeline import make_pipeline
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import AffinityPropagation
-from sklearn.metrics.pairwise import cosine_distances
 import matplotlib.pyplot as plt
 import time
 from sklearn.cluster import KMeans
@@ -52,10 +46,7 @@ class AffinityPropagationTechnique():
         """
         logger.info('Into the affinity core engine having the preference {}'.format(str(preference)))
         if X_train_vecs!=None or X_train_vecs!='None':
-            X = X_train_vecs
             # X = cosine_distances(X)
-
-
 
             # svd = TruncatedSVD(n_components=100)
             # normalizer = Normalizer(copy=False)
@@ -63,20 +54,18 @@ class AffinityPropagationTechnique():
             # X= X_train_vecs = lsa.fit_transform(X_train_vecs)
 
             # X = StandardScaler().fit_transform(X)
-            logger.info("The shape of X_train after the lsa {}".format(X_train_vecs.shape))
-            # X = X_train_vecs.toarray()
-            # X = np.array(X)
+            X = X_train_vecs.toarray()
             logger.info('Vector to array of the X data processed')
             if preference!='None':
                 af = AffinityPropagation(damping=0.5, preference=preference,verbose=True)
             else:
-                af = AffinityPropagation(damping=0.5, preference=None,verbose=True)
+                af = AffinityPropagation(damping=0.5, preference=None, verbose=True)
             logger.info('The affinity propagation object is {}'.format(str(af)))
             y = af.fit_predict(X)
             exemplars = af.cluster_centers_
             number_of_clusters = af.labels_.tolist()
 
-            # logger.info("The total number of cluster Affinity generated is: {}".format(str(len(exemplars))))
+            logger.info("The total number of cluster Affinity generated is: {}".format(str(len(exemplars))))
             data = {'filename': filenames, 'contents': contents, 'cluster_label': number_of_clusters}
             frame = pd.DataFrame(data=data, index=[number_of_clusters], columns=['filename', 'contents', 'cluster_label'])
             logger.info('Sample of the clustered df {}'.format(str(frame.head(2))))

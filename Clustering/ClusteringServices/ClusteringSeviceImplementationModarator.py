@@ -7,8 +7,10 @@ Created on Thu Jan 16 16:27:19 2018
 """
 import os
 import sys
-# print(os.path.abspath(os.path.join(os.getcwd(),os.pardir)))
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
+_PROJECT_EXECUTION_BASEPATH = r"/Users/nitesh/OneDrive/Work/GE_Python_Workspace/Clustering/"
+print(os.path.abspath(os.path.join(os.getcwd(),os.pardir)))
+# sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
+sys.path.append(_PROJECT_EXECUTION_BASEPATH)
 
 _cluster_number = None
 _cluster_stem = None
@@ -16,7 +18,7 @@ _percentage_of_cluster_bestfit = None
 
 
 import logging
-from ClusteringServices.ServiceUtilities import ExtraTools
+from ClusteringServices.Utilities.ServiceUtilities import ExtraTools
 from LoggingDetails.LogFileHandler import logs
 from LoggingDetails.LogPathConstant import LogFilePathContants, LogFiles
 from CSVUtilities.CSVToDf import CsvToDataFrame
@@ -30,7 +32,8 @@ from DataMassaging.DataPreprocessingUtility.Preprocessing.ContentProcessing impo
 from Clusters.BestFitCluster.BestFitNumberOfCluster import BestFitClusterTechnique, RuleBasedBestFitClusters
 from Clusters.HierarchicalClustering.HierarchicalClusteringProcess import HierarchyTechnique
 from DistanceMatrix.DistanceMatrixOfDocuments import EuclideanDistanceForDocuments
-from DBO.DataBaseServices import DFToSQl
+from DBO.ClusteringDBOImpl import ClusterCurd
+from DBO.DataBaseServices import DBConnection
 import pandas as pd
 import os
 
@@ -46,6 +49,7 @@ file_handler = logs().fileHandler(logging, log_file_path=log_file)
 logger.addHandler(file_handler)
 
 try:
+    _job_id = 'None'
     if len(sys.argv) == 2:
         _cluster_preference = _cluster_number = sys.argv[1]
 
@@ -115,6 +119,34 @@ try:
               ' and the type is ', type(_percentage_of_cluster_bestfit))
         print('The algo used is: ', _algo_name,
               ' and the type is: ', type(_algo_name))
+    elif len(sys.argv) == 6:
+        _cluster_preference = _cluster_number = sys.argv[1]
+        _cluster_stem = str(sys.argv[2])
+        _percentage_of_cluster_bestfit = sys.argv[3]
+        _algo_name = sys.argv[4]
+        _job_id = sys.argv[5]
+
+        if (_cluster_number != 'None'):
+            _cluster_number = int(_cluster_number)
+            _cluster_preference = float('%.1f' % float(sys.argv[1]))
+
+        if (_percentage_of_cluster_bestfit != 'None'):
+            _percentage_of_cluster_bestfit = int(
+                _percentage_of_cluster_bestfit)
+
+        if(_algo_name == 'None' or _algo_name == None):
+            _algo_name = 'kmeans'
+
+        print('The cluster number is: ', _cluster_number,
+              ' and the type is ', type(_cluster_number))
+        print('the cluster stem or not:', _cluster_stem,
+              ' and the type is ', type(_cluster_stem))
+        print('the percentage is: ', _percentage_of_cluster_bestfit,
+              ' and the type is ', type(_percentage_of_cluster_bestfit))
+        print('The algo used is: ', _algo_name,
+              ' and the type is: ', type(_algo_name))
+        print('The algo used is: ', _job_id,
+              ' and the type is: ', type(_job_id))
 
 except Exception as error:
     logger.error(
@@ -139,7 +171,10 @@ class PreClusteringModerator():
                 if CSV_Df == None:
                     raise Exception
                 else:
-                    df = CSV_Df.get_df_from_csv()
+                    if(_job_id!=None):
+                        df = CSV_Df.get_df_from_csv(job_id=_job_id)
+                    else:
+                        df = CSV_Df.get_df_from_csv(job_id=None)
                     logger.info("CSV Loaded to the dataframe")
                     df_independent_fields = DataUtilities(df=df)
 
@@ -147,7 +182,7 @@ class PreClusteringModerator():
                         if df_independent_fields == None:
                             raise Exception
                         else:
-                            df, independent_fields = df_independent_fields.show_hori_tech_from_df()
+                            df, independent_fields = df_independent_fields.show_hori_and_tech_segments_from_df()
                             logger.info(
                                 "removed the NaN from auto recognized independent variables")
                             logger.info("Populating the recognized independent fields {}".format(str(independent_fields
@@ -220,7 +255,8 @@ class ClusteringModerator():
             vector_bow = TfidfVectorizingTechnique()
             """kmeans_Clustering is performed without tfidf pipelined in the count vectorizing matrix"""
             contents = df['processed_text'].tolist()
-            company_id = df['ID'].tolist()
+            # company_id = df['ID'].tolist()
+            company_id = df['domain_name'].tolist()
             X_train_vecs, vectorizer = vector_bow.tfidf_vectorizer(contents)
             logger.info(
                 "Preprocessed data got converted into features -> vectors")
@@ -296,7 +332,7 @@ class ClusteringModerator():
         try:
             vector_bow = TfidfVectorizingTechnique()
             contents = df['processed_text'].tolist()
-            company_id = df['ID'].tolist()
+            company_id = df['domain_name'].tolist()
             X_train_vecs, vectorizer = vector_bow.tfidf_vectorizer(contents)
             logger.info(
                 "Preprocessed data got converted into features -> vectors")
@@ -333,11 +369,17 @@ class ClusteringModerator():
 
 
 def initiate_kmeans(k_number=None):
+    """
+
+    :param k_number:
+    :return:
+    """
     pcm = PreClusteringModerator()
     bfit = RuleBasedBestFitClusters()
     util = ExtraTools()
     df_to_csv = DataframeToCSV()
     csv_and_dict = CSVToDictionaryMapping()
+
     df, unique_values_dict = pcm.fetching_df()
     filtered_tech_dict = util.get_filtered_dict()
 
@@ -379,13 +421,65 @@ def initiate_kmeans(k_number=None):
 
     # cm.bestfit_kmeans(df=df)
 
-    dict_tag_df = csv_and_dict.dict_to_df(dict_of_cluster_and_tags)
-    df_to_csv.load_df_to_csv(
-        df=dict_tag_df, cluster_csv="cluster_tag", algo="kmeans")
+    if(_job_id=='None' or _job_id==None):
+        dict_tag_df = csv_and_dict.dict_to_df(dict_of_cluster_and_tags)
+        df_to_csv.load_df_to_csv(
+            df=dict_tag_df, cluster_csv="cluster_tag", algo="kmeans")
 
-    dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
-    df_to_csv.load_df_to_csv(
-        df=dict_filename_df, cluster_csv="cluster_filename", algo="kmeans")
+        dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
+        df_to_csv.load_df_to_csv(
+            df=dict_filename_df, cluster_csv="cluster_filename", algo="kmeans")
+    else:
+        # Save the data to DB
+        logger.info("The kmeans job id is :{}".format(str(_job_id)))
+        clusterDBO = ClusterCurd()
+        dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
+
+        result = clusterDBO.get_job_tbl_by_jobid(_job_id)
+        job = None
+        for row in result:
+            job = row['job_id']
+
+        # Save job_id and cluster_name
+        df_jobid_clustername = pd.DataFrame()
+        df_jobid_clustername['cluster_name'] = dict_filename_df.index
+        if job != None: df_jobid_clustername['job_id'] = job
+        logger.info(
+            "Inserting for job_cluster_mapper with data.... the job_id {} and cluster_name {}  ".format(str(job), str(
+                dict_filename_df.index)))
+        clusterDBO.insert_job_id_and_cluster_name(
+            df=df_jobid_clustername)  # Inserting into job_id and clustername table
+
+        # Save Cluster name and its respective filenames
+        try:
+            cluster_result = clusterDBO.get_cluster_id_by_jc_id(job) if (job != None) else None
+            if cluster_result != None:
+                for cluster_row in cluster_result:
+                    jc_id = cluster_row['jc_id']
+                    cluster_name = cluster_row['cluster_name']
+
+                    df_cluster_company_name = pd.DataFrame()
+                    df_cluster_company_name['company_id'] = dict_of_cluster_and_filename[cluster_name]
+                    df_cluster_company_name['jc_id'] = jc_id
+
+                    logger.info("df formed and sending for insertion operation for the cluster from kmeans {} and the jc_id is {}".format(str(cluster_name),str(jc_id)))
+                    clusterDBO.insert_jc_id_and_filename(df=df_cluster_company_name)
+            else:
+                logger.error("Result is empty from db from the tbl cluster and job id mapping where job_id is {}".format(str(job)))
+                raise Exception
+
+            try:
+                clusterDBO.update_status_in_job_table(status='Done', job_id=job)
+                logger.info("Job details table updated on status")
+            except Exception as e:
+                logger.error(
+                    "Something went wrong in updating the job_table for the completed status {}".format(str(e)))
+
+            logger.info("Kmeans cluster and filename/domain name DB operation is succesfully completed")
+
+        except Exception as e:
+            logger.error("Some error in saving the cluster name and its respective filename from kmeans {}".format(str(e)))
+            logger.error("Kmeans clusters DB save Failed")
 
 
 def initiate_affinity_propagation(cluster_preferences=None):
@@ -416,13 +510,71 @@ def initiate_affinity_propagation(cluster_preferences=None):
     dict_of_cluster_and_filename, centeriod_and_data_radius = cm.affinity_propagation_by_tfidf_vectorizer(
         df=df, cluster_preferences=cluster_preferences)
 
-    dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
-    df_to_csv.load_df_to_csv(df=dict_filename_df, cluster_csv="cluster_filename", algo="affinity_propagation")
+    if (_job_id == 'None' or _job_id == None):
+        dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
+        df_to_csv.load_df_to_csv(df=dict_filename_df, cluster_csv="cluster_filename", algo="affinity_propagation")
 
-    # dict_radius_df = csv_and_dict.dict_to_df(centeriod_and_data_radius)
-    # df_to_csv.load_df_to_csv(df=dict_radius_df, cluster_csv="cluster_distance", algo="affinity_propagation")
+        # dict_radius_df = csv_and_dict.dict_to_df(centeriod_and_data_radius)
+        # df_to_csv.load_df_to_csv(df=dict_radius_df, cluster_csv="cluster_distance", algo="affinity_propagation")
+    else:
 
-    # To The DB
+        # Save the data to DB
+        logger.info("The affinity job id is :{}".format(str(_job_id)))
+        clusterDBO = ClusterCurd()
+        dict_filename_df = csv_and_dict.dict_to_df(dict_of_cluster_and_filename)
+
+        result = clusterDBO.get_job_tbl_by_jobid(_job_id)
+        job = None
+        for row in result:
+            job = row['job_id']
+
+        # Save job_id and cluster_name
+        df_jobid_clustername = pd.DataFrame()
+        df_jobid_clustername['cluster_name'] = dict_filename_df.index
+        if job!=None: df_jobid_clustername['job_id'] = job
+        logger.info("Inserting for job_cluster_mapper with data.... the job_id {} and cluster_name {}  ".format(str(job), str(
+            dict_filename_df.index)))
+        clusterDBO.insert_job_id_and_cluster_name(df=df_jobid_clustername) #Inserting into job_id and clustername table
+
+
+        # Save Cluster name and its respective filenames
+        try:
+            cluster_result = clusterDBO.get_cluster_id_by_jc_id(job) if (job!=None) else None
+            if cluster_result != None:
+                for cluster_row in cluster_result:
+                    jc_id = cluster_row['jc_id']
+                    cluster_name = cluster_row['cluster_name']
+
+                    df_cluster_company_name = pd.DataFrame()
+                    df_cluster_company_name['company_id'] = dict_of_cluster_and_filename[cluster_name]
+                    df_cluster_company_name['jc_id'] = jc_id
+
+                    logger.info(
+                        "df formed and sending for insertion operation for the cluster from affinity {} and the jc_id "
+                        "is {}".format(
+                            str(cluster_name), str(jc_id)))
+                    clusterDBO.insert_jc_id_and_filename(df=df_cluster_company_name)
+            else:
+                logger.error(
+                    "Result is empty from db from the tbl cluster and job id mapping where job_id is {}".format(
+                        str(job)))
+                raise Exception
+
+            try:
+                clusterDBO.update_status_in_job_table(status='Done', job_id=job)
+            except:
+                logger.error("Something went wrong in updating the job_table for the completed status")
+
+            logger.info("Affinity cluster and filename/domain name DB operation is succesfully completed")
+
+        except Exception as e:
+            logger.error("Some error in saving the cluster name and its respective filename from affinity {}"
+                         .format(str(e)))
+            logger.error("Affinity clusters DB save Failed")
+
+
+
+
     # df_to_sql = DFToSQl()
     # df_to_sql.save_df_to_sql(dict_filename_df)
 
@@ -478,50 +630,43 @@ def initiate_bestfit():
 
 
 if __name__ == '__main__':
-    _algo_name = 'affinity'
-    _cluster_preference = 'None'
+    # _algo_name = 'kmeans'
+    # _cluster_preference = 'None'
+    # _job_id = '20180320220207'
+    # _cluster_number = 5
     if(_algo_name == 'kmeans'):
         # If the cluster number given in cmd is None it goes for the percentage
         if(_cluster_number != 'None' or _cluster_number != None):
             logger.info('Kmeans Cluster number entered is {}'.format(
                 str(_cluster_number)))
-            initiate_kmeans(k_number=_cluster_number)
+            try:
+                initiate_kmeans(k_number=_cluster_number)
+            except Exception as e:
+                logger.error("Failure occurred in kmeans {}".format(str(e)))
 
         else:
             logger.info('Cluster number entered is None')
-            initiate_kmeans()
+            try:
+                initiate_kmeans()
+            except Exception as e:
+                logger.error("Failure occurred in kmeans {}".format(str(e)))
+
     elif(_algo_name == 'affinity'):
         if(_cluster_preference != 'None' or _cluster_preference != None):
             logger.info('Affinity Cluster entered and the preference is {}'.format(
                 str(_cluster_preference)))
-            initiate_affinity_propagation(
-                cluster_preferences=_cluster_preference)
+            try:
+                initiate_affinity_propagation(
+                    cluster_preferences=_cluster_preference)
+            except Exception as e:
+                logger.error("Failure occurred in affinity {}".format(str(e)))
         else:
             logger.info('Affinity cluster with no preferences set... started')
-            initiate_affinity_propagation()
+            try:
+                initiate_affinity_propagation()
+            except Exception as e:
+                logger.error("Failure occurred in affinity {}".format(str(e)))
 
     # initiate_bestfit()
     # initiate_hierarchy(hc_number=6)
     # initiate_hierarchical_dendrogram()
-    """
-    pcm = PreClusteringModerator()
-    df_to_csv = DataframeToCSV()
-    CSV_Df = CsvToDataFrame()
-    df, unique_values_dict=pcm.fetching_df()A
-
-    d = {'horizontal': ['Fintech'], 'technology_segment_1': ['Digital Banking']}
-    df = pcm.df_filtering(df=df,filter_dict=d)
-    df = ProcessingData().get_text_without_stem(df=df)
-
-    cm = ClusteringModerator()
-    dict_of_cluster_and_tags, dict_of_cluster_and_filename=cm.kmeans_cluster_by_tfidf_vectorizer(df=df)
-
-    # cm.bestfit_kmeans(df=df)
-
-    dict_tag_df = df_to_csv.dict_to_df(dict_of_cluster_and_tags)
-    df_to_csv.load_df_to_csv(df=dict_tag_df,cluster_csv="cluster_tag")
-
-    dict_filename_df = df_to_csv.dict_to_df(dict_of_cluster_and_filename)
-    df_to_csv.load_df_to_csv(df=dict_filename_df, cluster_csv="cluster_filename")
-    
-    """

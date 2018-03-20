@@ -46,16 +46,20 @@ class CsvToDataFrame():
         self.csv_value = value
 
 
-    def get_df_from_csv(self):
+    def get_df_from_csv(self, job_id=None):
         """
         This method provides the df from the csv present in the default path.
         This also removes the rows where the domain_name are NaN
         :return: df: DF which is converted from the csv format
         """
-        csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
-                                self.csv_value._GE_SEGMENT_CSV) #This the csv path of GE
-        logger.info('The csv path is {}'.format(csv_path))
+        if(job_id!=None):
+            csv_name = job_id+".csv"
+            csv_path = os.path.join(self.file_path._BASE_DOC_PATH,csv_name)
+        else:
+            csv_path = os.path.join(self.file_path._BASE_DOC_PATH,
+                                    self.csv_value._GE_SEGMENT_CSV) #This the csv path of GE
 
+        logger.info('The csv path is {}'.format(csv_path))
         try:
             df = pd.read_csv(csv_path)
             logger.info("Dataframe is create %s is the same of record",df.head(1))

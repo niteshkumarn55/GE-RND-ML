@@ -19,10 +19,12 @@ class LogFiles():
 
     _DATA_MASSAGE_LOG_FILE = r"data_massage_log.log"
 
-    _CLUSTERING_LOG_FILE = r"classifier_log.log"
+    _CLUSTERING_LOG_FILE = r"cluster_log.log"
 
     _CSV_LOG_FILE = r"csv_log.log"
 
     _VECTORIZER_LOG_FILE = r"vectorizer_log.log"
+
+    _DB_LOG_FILE = r"db_log.log"
 
 

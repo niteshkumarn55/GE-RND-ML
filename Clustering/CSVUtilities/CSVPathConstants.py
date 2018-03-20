@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO,
 
 class CSVFilePathContants():
 
-    #This is the Base path of all the Files
+    #This is the Base path of all the CSV Files
     _BASE_DOC_PATH = r"/Users/nitesh/OneDrive/Work/GE_Docs_ML/"
 
 

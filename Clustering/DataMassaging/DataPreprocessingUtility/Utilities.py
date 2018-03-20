@@ -33,7 +33,7 @@ class DataUtilities():
     def __init__(self,df=pd.DataFrame()):
         self._df = df
 
-    def show_hori_tech_from_df(self):
+    def show_hori_and_tech_segments_from_df(self):
         """
         This function provides the df which is required for the classification/clustering problem.
         It removes all the NaN from the independent columns.
@@ -54,6 +54,9 @@ class DataUtilities():
                 # Filtering on the data needed for the classification/clustering
                 try:
                     required_df = self._df.filter(['ID', 'company_name', 'domain_name','short_description','about_us'], axis=1)
+                    required_df = required_df[required_df['short_description'].notnull()]
+                    required_df = required_df[required_df['about_us'].notnull()]
+
                 except Exception as error:
                     logger.error("Filtering the data frame caused problem ",str(error),exc_info=True)
 
@@ -64,8 +67,15 @@ class DataUtilities():
                         independent_fields.append(value)
 
                         #Gets only the required columns to the dataframe
-                        required_df[value] = self._df[value]
-                        required_df = required_df[required_df[value].notnull()] #Just picking rows which has no NaN
+                        """
+                         @author: Nitesh - commenting below two lines, because when data generated 
+                         from sql and exported in csv, the horizontals/technology segments can be NaN. 
+                         In some cases the whole column (horizontal/tech_segment) will be NaN. In such 
+                         case checking for not null wrt horizotal and tech_segments will provide empty df.
+                        """
+                        # required_df[value] = self._df[value]
+                        # required_df = required_df[required_df[value].notnull()] #Just picking rows which has no NaN
+
                 logger.info("The filtered df is {}".format(str(required_df.head(1))))
                 logger.info("The independent values are {}".format(str(independent_fields)))
                 return required_df, independent_fields

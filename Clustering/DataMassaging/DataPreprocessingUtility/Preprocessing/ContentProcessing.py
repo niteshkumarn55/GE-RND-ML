@@ -8,7 +8,7 @@ Created on Thu Jan 12 13:46:19 2018
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from string import punctuation
+from string import punctuation,digits
 import re
 import os
 import logging
@@ -26,7 +26,7 @@ logger.addHandler(file_handler)
 
 class ProcessingData():
 
-    _stopwords = set(stopwords.words('english') + list(punctuation))
+    _stopwords = set(stopwords.words('english') + list(punctuation) + list(digits))
     _stemmer = SnowballStemmer('english')
 
     def nltk_preprocessing(self, content):
