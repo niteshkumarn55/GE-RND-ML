@@ -72,7 +72,7 @@ class CsvToDataFrame():
                 df = df[df[col].notnull()] #Just picking rows which has no NaN in domain_name
             return df
         except (SystemExit, KeyboardInterrupt):
-            raise
+            raise Exception
         except FileNotFoundError as error:
             logger.error("check the file existence {}".format(str(error)))
         except Exception as error:

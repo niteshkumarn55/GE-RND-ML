@@ -30,24 +30,23 @@ class KmeansTechnique():
             km = KMeans(n_clusters=number_cluster, init='k-means++', max_iter=100, n_init=10,
                         verbose=True)
             logger.info("Clustering sparse data with {}".format(str(km)))
-            print("Clustering sparse data with %s" % km)
+            # print("Clustering sparse data with %s" % km)
             t0 = time()
             km.fit(X_train_vecs)
-            print("done in %0.3fs" % (time() - t0))
-            print()
+            logger.info("done in  {}".format(str(time() - t0)))
+            # print()
             cluster_labels = km.labels_.tolist()
-            logger.info("List of cluster names is :{}".format(str(cluster_labels)))
-            print("List of the cluster names is : ",cluster_labels)
+            logger.info("List of cluster names is :{}".format(str(len(cluster_labels))))
             data = {'filename':filenames, 'contents':contents, 'cluster_label':cluster_labels}
             frame = pd.DataFrame(data=data, index=[cluster_labels], columns=['filename', 'contents', 'cluster_label'])
             cluster_and_count_of_docs = frame['cluster_label'].value_counts(sort=True, ascending=False)
-            print(cluster_and_count_of_docs)
-            print()
+            logger.info("The cluster and count of docs dict size is : ".format(len(cluster_and_count_of_docs)))
+            # print()
             grouped = frame['cluster_label'].groupby(frame['cluster_label'])
-            print(grouped.mean())
-            print()
-            logger.info("Finding the top terms per cluster -")
-            print("Top Terms Per Cluster :")
+            logger.info("the cluster frame grouped mean my cluster label is :".format(str(grouped.mean())))
+            # print()
+            logger.info("Finding the top terms per cluster------")
+            logger.info("Top Terms Per Cluster will be generated-------")
 
             if is_dimension_reduced:
                 if svd != None:
@@ -61,19 +60,20 @@ class KmeansTechnique():
             dict_of_cluster_and_tags = dict()
             dict_of_cluster_and_filename = dict()
             for i in range(number_cluster):
-                print("Cluster %d:" % i, end=' ')
+                logger.info("Cluster {}:".format(str(i)))
                 list_of_cluster_tags = list()
                 for ind in order_centroids[i, :15]:
-                    print(' %s' % terms[ind], end=',')
+                    # print(' %s' % terms[ind], end=',')
                     list_of_cluster_tags.append(terms[ind])
 
-                print()
-                print("Cluster %d filenames:" % i, end='')
+                # print()
+                logger.info("Cluster and the filename is generated...")
+                # print("Cluster %d filenames:" % i, end='')
                 list_of_cluster_filename = list()
                 for file in frame.ix[i]['filename'].values.tolist():
-                    print(' %s,' % file, end='')
+                    # print(' %s,' % file, end='')
                     list_of_cluster_filename.append(str(file))
-                print()
+                # print()
                 logger.info("generating the dictionary of cluster tags and cluster filename")
                 dict_of_cluster_and_tags['cluster '+str(i)] = list_of_cluster_tags
                 dict_of_cluster_and_filename['cluster '+str(i)] = list_of_cluster_filename
